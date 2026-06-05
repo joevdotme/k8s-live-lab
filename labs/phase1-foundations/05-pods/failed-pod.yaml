@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: failed-pod
+spec:
+  restartPolicy: Never
+  containers:
+  - name: task
+    image: busybox:latest
+    command: ["sh", "-c", "echo 'something went wrong'; exit 1"]

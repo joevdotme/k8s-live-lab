@@ -1,0 +1,263 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+
+.header { padding: 1.5rem 0 1rem; }
+.header h1 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+.header p { font-size: 13px; color: var(--color-text-secondary); }
+
+.progress-bar-wrap { background: var(--color-background-secondary); border-radius: 99px; height: 6px; margin: 1rem 0; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 99px; background: #1D9E75; transition: width 0.4s ease; }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 1rem; flex-wrap: wrap; }
+.tab { padding: 6px 14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; font-size: 13px; cursor: pointer; color: var(--color-text-secondary); transition: all 0.15s; }
+.tab:hover { background: var(--color-background-secondary); }
+.tab.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); font-weight: 500; }
+
+.phase-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; margin-bottom: 12px; }
+.phase-header { padding: 14px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
+.phase-header:hover { background: var(--color-background-secondary); }
+.phase-badge { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+.phase-title { flex: 1; }
+.phase-title strong { font-size: 14px; font-weight: 500; display: block; color: var(--color-text-primary); }
+.phase-title span { font-size: 12px; color: var(--color-text-secondary); }
+.phase-toggle { font-size: 16px; color: var(--color-text-tertiary); transition: transform 0.2s; }
+.phase-toggle.open { transform: rotate(180deg); }
+
+.topics-list { border-top: 0.5px solid var(--color-border-tertiary); }
+.topic-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); transition: background 0.1s; }
+.topic-row:last-child { border-bottom: none; }
+.topic-row:hover { background: var(--color-background-secondary); }
+.topic-check { width: 18px; height: 18px; border: 1.5px solid var(--color-border-secondary); border-radius: 4px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; margin-top: 1px; }
+.topic-check.checked { background: #1D9E75; border-color: #1D9E75; }
+.topic-check.checked::after { content: '✓'; color: white; font-size: 11px; font-weight: 500; }
+.topic-content { flex: 1; }
+.topic-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
+.topic-name.done { color: var(--color-text-tertiary); text-decoration: line-through; }
+.topic-detail { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+.topic-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+.tag { font-size: 11px; padding: 2px 8px; border-radius: 99px; border: 0.5px solid; }
+.tag-interview { background: var(--color-background-info); color: var(--color-text-info); border-color: var(--color-border-info); }
+.tag-hands-on { background: #EAF3DE; color: #3B6D11; border-color: #97C459; }
+.tag-concept { background: #EEEDFE; color: #534AB7; border-color: #AFA9EC; }
+.tag-gotcha { background: #FAECE7; color: #993C1D; border-color: #F0997B; }
+
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1rem; }
+.stat-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; text-align: center; }
+.stat-num { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+.stat-label { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+
+.legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 1rem; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--color-text-secondary); }
+
+.hidden { display: none; }
+</style>
+
+<div class="header">
+  <h1>Kubernetes interview prep</h1>
+  <p>Check off topics as you learn them — aim to complete Phases 1–3 for most interviews.</p>
+</div>
+
+<div class="stats-row" id="stats-row">
+  <div class="stat-card"><div class="stat-num" id="stat-done">0</div><div class="stat-label">completed</div></div>
+  <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">total topics</div></div>
+  <div class="stat-card"><div class="stat-num" id="stat-pct">0%</div><div class="stat-label">ready</div></div>
+</div>
+
+<div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog" style="width:0%"></div></div>
+
+<div class="legend">
+  <div class="legend-item"><span class="tag tag-interview">interview</span> very likely asked</div>
+  <div class="legend-item"><span class="tag tag-hands-on">hands-on</span> practice in a cluster</div>
+  <div class="legend-item"><span class="tag tag-concept">concept</span> understand deeply</div>
+  <div class="legend-item"><span class="tag tag-gotcha">gotcha</span> common trap</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="filterPhase('all')">All phases</button>
+  <button class="tab" onclick="filterPhase(1)">Phase 1 — Foundations</button>
+  <button class="tab" onclick="filterPhase(2)">Phase 2 — Workloads</button>
+  <button class="tab" onclick="filterPhase(3)">Phase 3 — Networking & Storage</button>
+  <button class="tab" onclick="filterPhase(4)">Phase 4 — Production</button>
+  <button class="tab" onclick="filterPhase(5)">Phase 5 — Advanced</button>
+</div>
+
+<div id="phases-container"></div>
+
+<script>
+const phases = [
+  {
+    id: 1,
+    title: "Phase 1 — Foundations",
+    duration: "Days 1–3",
+    color: "#1D9E75",
+    bg: "#E1F5EE",
+    textColor: "#085041",
+    topics: [
+      { name: "What is Kubernetes?", detail: "Container orchestration, why it exists, architecture overview. Be able to explain it in 30 seconds.", tags: ["interview","concept"] },
+      { name: "Control plane components", detail: "API server, etcd, scheduler, controller manager — what each does and why it matters.", tags: ["interview","concept"] },
+      { name: "Node components", detail: "kubelet, kube-proxy, container runtime (containerd/CRI-O). Know what runs on worker nodes.", tags: ["interview","concept"] },
+      { name: "kubectl basics", detail: "get, describe, logs, exec, apply, delete. Practice until it's muscle memory.", tags: ["hands-on"] },
+      { name: "Pods", detail: "Smallest deployable unit. Multi-container pods, init containers, lifecycle phases.", tags: ["interview","concept","hands-on"] },
+      { name: "YAML manifests", detail: "apiVersion, kind, metadata, spec — understand every field you write.", tags: ["hands-on"] },
+      { name: "Namespaces", detail: "Logical isolation, default vs kube-system, how resources are scoped.", tags: ["interview","concept"] },
+    ]
+  },
+  {
+    id: 2,
+    title: "Phase 2 — Workloads",
+    duration: "Days 4–7",
+    color: "#534AB7",
+    bg: "#EEEDFE",
+    textColor: "#26215C",
+    topics: [
+      { name: "Deployments", detail: "ReplicaSets, rolling updates, rollback. Know: kubectl rollout status/undo.", tags: ["interview","hands-on"] },
+      { name: "ReplicaSets", detail: "How they work under Deployments. You won't use them directly but must explain them.", tags: ["concept"] },
+      { name: "StatefulSets", detail: "Stable network IDs, ordered rollout. Used for databases. Key interview topic.", tags: ["interview","concept"] },
+      { name: "DaemonSets", detail: "One pod per node. Used for logging agents, monitoring. Understand tolerations.", tags: ["interview","concept"] },
+      { name: "Jobs & CronJobs", detail: "Run-to-completion workloads, restartPolicy. CronJob schedules.", tags: ["interview","hands-on"] },
+      { name: "Resource requests & limits", detail: "CPU/memory requests vs limits, QoS classes (Guaranteed/Burstable/BestEffort). Common interview trap.", tags: ["interview","concept","gotcha"] },
+      { name: "Probes: liveness, readiness, startup", detail: "Differences between the three, when each fires, how they affect traffic and restarts.", tags: ["interview","concept","gotcha"] },
+      { name: "ConfigMaps & Secrets", detail: "How to mount as env vars or volume files. Never hardcode config. Secrets are base64, not encrypted by default.", tags: ["interview","hands-on","gotcha"] },
+    ]
+  },
+  {
+    id: 3,
+    title: "Phase 3 — Networking & Storage",
+    duration: "Days 8–12",
+    color: "#185FA5",
+    bg: "#E6F1FB",
+    textColor: "#042C53",
+    topics: [
+      { name: "Services: ClusterIP, NodePort, LoadBalancer", detail: "When to use each. ClusterIP is the default. LoadBalancer provisions cloud LBs.", tags: ["interview","concept","hands-on"] },
+      { name: "Endpoints & selector matching", detail: "How Services find Pods via label selectors. What happens when selector matches nothing.", tags: ["concept","gotcha"] },
+      { name: "DNS in Kubernetes", detail: "CoreDNS, service DNS format: <svc>.<ns>.svc.cluster.local. Pod DNS.", tags: ["interview","concept"] },
+      { name: "Ingress & IngressClass", detail: "HTTP routing rules, TLS termination, need for an ingress controller (nginx, traefik).", tags: ["interview","concept","hands-on"] },
+      { name: "Network Policies", detail: "Restrict pod-to-pod traffic. Default-deny patterns. Requires a CNI that enforces them.", tags: ["interview","concept"] },
+      { name: "CNI basics", detail: "Container Network Interface, popular options (Flannel, Calico, Cilium), why it matters.", tags: ["concept"] },
+      { name: "PersistentVolumes & PVCs", detail: "Static vs dynamic provisioning, StorageClass, access modes (RWO/RWX/ROX), reclaim policies.", tags: ["interview","concept","hands-on"] },
+      { name: "StorageClass & dynamic provisioning", detail: "How a PVC triggers PV creation via a provisioner. Cloud-specific defaults.", tags: ["concept"] },
+    ]
+  },
+  {
+    id: 4,
+    title: "Phase 4 — Production Patterns",
+    duration: "Days 13–17",
+    color: "#854F0B",
+    bg: "#FAEEDA",
+    textColor: "#412402",
+    topics: [
+      { name: "RBAC: Roles, ClusterRoles, Bindings", detail: "Least-privilege. ServiceAccounts, subjects, verbs, resources. Write a Role for read-only access.", tags: ["interview","hands-on"] },
+      { name: "ServiceAccounts", detail: "How pods authenticate to the API. Token auto-mounting, projected volumes.", tags: ["interview","concept"] },
+      { name: "Pod Security (PSA/PSS)", detail: "Pod Security Admission replacing deprecated PSPs. Restricted/Baseline/Privileged standards.", tags: ["interview","concept"] },
+      { name: "Horizontal Pod Autoscaling (HPA)", detail: "Scale on CPU/memory or custom metrics. Relationship to resource requests.", tags: ["interview","hands-on"] },
+      { name: "Node selectors, affinity, anti-affinity", detail: "Schedule pods to specific nodes. Hard (required) vs soft (preferred) rules.", tags: ["interview","concept"] },
+      { name: "Taints & tolerations", detail: "Repel pods from nodes unless they tolerate the taint. Common with GPU nodes.", tags: ["interview","concept","gotcha"] },
+      { name: "PodDisruptionBudgets", detail: "Guarantee minimum available pods during voluntary disruptions (node drain, rolling updates).", tags: ["interview","concept"] },
+      { name: "Helm basics", detail: "Charts, values.yaml, templates. install/upgrade/rollback. You'll be asked about this.", tags: ["interview","hands-on"] },
+    ]
+  },
+  {
+    id: 5,
+    title: "Phase 5 — Advanced & Extras",
+    duration: "Days 18–21",
+    color: "#3B6D11",
+    bg: "#EAF3DE",
+    textColor: "#173404",
+    topics: [
+      { name: "etcd: what it stores & why it matters", detail: "All cluster state lives here. Backup/restore is critical. Know its Raft consensus basics.", tags: ["interview","concept"] },
+      { name: "Custom Resource Definitions (CRDs)", detail: "Extend the API. Understand the operator pattern conceptually.", tags: ["interview","concept"] },
+      { name: "Admission controllers & webhooks", detail: "Mutating vs validating webhooks. How policy engines (OPA/Kyverno) use them.", tags: ["concept"] },
+      { name: "Cluster upgrades", detail: "Control plane first, then nodes. Drain, upgrade kubelet, uncordon. Version skew policy.", tags: ["interview","concept"] },
+      { name: "Observability: metrics, logs, traces", detail: "Prometheus/Grafana stack, log aggregation (Loki/EFK), distributed tracing concepts.", tags: ["interview","concept"] },
+      { name: "Multi-tenancy patterns", detail: "Namespace-per-team, network policies + RBAC, virtual clusters.", tags: ["concept"] },
+      { name: "Debugging runbook", detail: "Pod CrashLoopBackoff → check logs. Pending → check events (quota, scheduler). ImagePullBackoff → check image/secrets.", tags: ["interview","hands-on","gotcha"] },
+      { name: "Common interview scenarios", detail: "\"How would you zero-downtime deploy?\", \"App is slow — how do you investigate?\", \"A node is NotReady — what do you check?\"", tags: ["interview","gotcha"] },
+    ]
+  }
+];
+
+let checked = JSON.parse(localStorage.getItem('k8s_checked') || '{}');
+let currentFilter = 'all';
+
+function save() {
+  try { localStorage.setItem('k8s_checked', JSON.stringify(checked)); } catch(e) {}
+}
+
+function updateStats() {
+  const all = document.querySelectorAll('.topic-check');
+  const done = document.querySelectorAll('.topic-check.checked');
+  const t = all.length, d = done.length;
+  document.getElementById('stat-done').textContent = d;
+  document.getElementById('stat-total').textContent = t;
+  document.getElementById('stat-pct').textContent = t ? Math.round(d/t*100)+'%' : '0%';
+  document.getElementById('prog').style.width = t ? (d/t*100)+'%' : '0%';
+}
+
+function toggle(id) {
+  checked[id] = !checked[id];
+  save();
+  const box = document.querySelector(`.topic-check[data-id="${id}"]`);
+  const name = document.querySelector(`.topic-name[data-id="${id}"]`);
+  if (box) box.classList.toggle('checked', checked[id]);
+  if (name) name.classList.toggle('done', checked[id]);
+  updateStats();
+}
+
+function togglePhase(phaseId) {
+  const list = document.getElementById(`topics-${phaseId}`);
+  const arrow = document.getElementById(`arrow-${phaseId}`);
+  const hidden = list.classList.toggle('hidden');
+  arrow.classList.toggle('open', !hidden);
+}
+
+function filterPhase(f) {
+  currentFilter = f;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.phase-card').forEach(c => {
+    const pid = parseInt(c.dataset.phase);
+    c.style.display = (f === 'all' || f === pid) ? '' : 'none';
+  });
+}
+
+function render() {
+  const container = document.getElementById('phases-container');
+  container.innerHTML = '';
+  phases.forEach(phase => {
+    const card = document.createElement('div');
+    card.className = 'phase-card';
+    card.dataset.phase = phase.id;
+
+    card.innerHTML = `
+      <div class="phase-header" onclick="togglePhase(${phase.id})">
+        <div class="phase-badge" style="background:${phase.bg};color:${phase.textColor}">${phase.id}</div>
+        <div class="phase-title">
+          <strong>${phase.title}</strong>
+          <span>${phase.duration} · ${phase.topics.length} topics</span>
+        </div>
+        <div class="phase-toggle open" id="arrow-${phase.id}">▾</div>
+      </div>
+      <div class="topics-list" id="topics-${phase.id}">
+        ${phase.topics.map((t, i) => {
+          const id = `p${phase.id}t${i}`;
+          const isChecked = checked[id];
+          return `
+            <div class="topic-row">
+              <div class="topic-check ${isChecked?'checked':''}" data-id="${id}" onclick="toggle('${id}')"></div>
+              <div class="topic-content">
+                <div class="topic-name ${isChecked?'done':''}" data-id="${id}">${t.name}</div>
+                <div class="topic-detail">${t.detail}</div>
+                <div class="topic-tags">${t.tags.map(tag=>`<span class="tag tag-${tag.replace('-','')}">${tag}</span>`).join('')}</div>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>`;
+    container.appendChild(card);
+  });
+  updateStats();
+}
+
+render();
+</script>

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: succeeded-pod
+spec:
+  restartPolicy: Never
+  containers:
+  - name: task
+    image: busybox:latest
+    command: ["sh", "-c", "echo 'task done'; exit 0"]
